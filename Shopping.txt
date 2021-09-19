@@ -1,0 +1,431 @@
+SHOPPING
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{%  block title %}Photo list{%  endblock title %}</title>
+    <link rel="stylesheet" href="{{ asset('img/style.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+<header>
+    <h1>Photo list</h1>
+    {%  include('inc/nav.html.twig') %}
+</header>
+
+<main>
+    {% block body %} {% endblock %}
+</main>
+
+<footer>
+    <div style="background-color: #5eb5e0; text-align: center">©Photo-List {{ "now"|date("d/m/Y H:i:s") }}</div>
+</footer>
+</body>
+</html>
+
+
+
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Shop;
+use App\Form\ShoppingType;
+use ContainerV0YikgD\getShopRepositoryService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+
+class ShopController extends AbstractController
+{
+    /**
+     * @Route(path="/shop/create", name="shop_create", methods={"GET", "POST"})
+     */
+    public function create(EntityManagerInterface $entityManager, Request $request)
+    {
+        $shop = new Shop();
+        $shopform = $this->createForm(ShoppingType::class, $shop);
+        $shopform->handleRequest($request);
+
+        if($shopform->isSubmitted()){
+            //Faire qq chose avec les données
+            $entityManager->persist($shop);
+            $entityManager->flush();
+
+            //Message de validation
+            $this->addFlash('success', 'Cet élément a bien été ajouté à la liste !');
+            return $this->redirectToRoute('shop_detail', ['id' => $shop->getId()]);
+        }
+
+        return $this->render('shop/create.html.twig', ['shopForm' => $shopform->createView()]);
+    }
+
+    /**
+     * @Route(path="/shop/delete{id}", requirements={"id":"\d+"}, name="shop_delete", methods={"GET"})
+     */
+    public function delete(Request $request)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $shop= $entityManager->getRepository('App:Shop')->find($request->get('id'));
+        $entityManager->remove($shop);
+        $entityManager->flush();
+
+        //Message de validation
+        $this->addFlash('success', 'Cet élément a bien été retiré de la liste !');
+        return $this->redirectToRoute('shop_shoplist');
+    }
+
+    /**
+     * @Route(path="/shop/shoplist", name="shop_shoplist", methods={"GET"})
+     */
+    public function shoplist(Request $request, EntityManagerInterface $entityManager)
+    {
+        // Récupération de la page
+        $page = $request->get('page', 1);
+
+        // Récupération des shops par pagination
+        $shops = $entityManager->getRepository('App:Shop')->getShopsByQB($page, 1000);
+
+        return $this->render('shop/shoplist.html.twig', ['shops' => $shops]);
+    }
+
+    /**
+     * @Route(path="/shop/detail/{id}", requirements={"id":"\d+"}, name="shop_detail", methods={"GET"})
+     */
+    public function detail(Request $request, EntityManagerInterface $entityManager)
+    {
+        // Récupération de l'identifiant
+        $id = (int)$request->get('id');
+
+        // Récupération du shop par son id
+        $shop = $entityManager->getRepository('App:Shop')->findOneBy(['id' => $id]);
+        if (is_null($shop)) {
+            throw $this->createNotFoundException('Not Found !');
+        }
+
+        return $this->render('shop/detail.html.twig', ['shop' => $shop]);
+    }
+}
+
+
+
+
+
+<?php
+
+namespace App\Entity;
+
+use App\Repository\ShopRepository;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity(repositoryClass=ShopRepository::class)
+ */
+class Shop
+{
+    /**
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
+     */
+    private $id;
+
+    /**
+     * @ORM\Column(type="string", length=100)
+     */
+    private string $Shop;
+
+    /**
+     * @ORM\Column(type="string", length=200)
+     */
+    private string $Description;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private int $Price;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getShop(): ?string
+    {
+        return $this->Shop;
+    }
+
+    public function setShop(string $Shop): self
+    {
+        $this->Shop = $Shop;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->Description;
+    }
+
+    public function setDescription(string $Description): self
+    {
+        $this->Description = $Description;
+
+        return $this;
+    }
+
+    public function getPrice(): ?int
+    {
+        return $this->Price;
+    }
+
+    public function setPrice(int $Price): self
+    {
+        $this->Price = $Price;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+<?php
+
+namespace App\Form;
+
+use App\Entity\Shop;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class ShoppingType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+            ->add('Shop', TextType::class, ['label' => 'Name'])
+            ->add('Description', TextType::class, ['label' => 'Description'])
+            ->add('Price', TextType::class, ['label' => 'Price']);
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => Shop::class,
+        ]);
+    }
+}
+
+
+
+
+
+<?php
+
+namespace App\Form;
+
+use App\Entity\Shop;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class ShoppingType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+            ->add('Shop', TextType::class, ['label' => 'Name'])
+            ->add('Description', TextType::class, ['label' => 'Description'])
+            ->add('Price', TextType::class, ['label' => 'Price']);
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => Shop::class,
+        ]);
+    }
+}
+
+
+
+
+<nav>
+    <ul>
+        <li><a href="http://localhost/shopping/public/" title="symfony">SYMFONY</a></li>
+        <li><a href="{{ url('main_home') }}" title="home">HOME</a></li>
+        <li><a href="{{ url('shop_create') }}" title="create">CREATE</a></li>
+        <li><a href="{{ url('shop_shoplist') }}" title="shoplist">SHOPPING LIST</a></li>
+    </ul>
+</nav>
+
+
+
+
+
+
+
+
+{% extends('base.html.twig') %}
+
+{% block body %}
+    <br>
+    <br>
+    <h1>Bienvenue sur la page shopping !</h1>
+    <br>
+    <br>
+    <div>En cliquant sur Create, vous pourrez ajouter des items à la liste des courses...</div>
+    <br>
+    <br>
+    <div>En cliquant sur Shopping List, vous pourrez découvrir la liste des courses, et supprimer également les articles de votre choix...</div>
+    <br>
+    <br>
+{%  endblock body %}
+
+
+
+
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<br>
+<br>
+    <div id="form">
+        <div> {{ form_start(shopForm) }} </div>
+        <div> {{ form_widget(shopForm) }} </div>
+        <button>Envoyer !</button>
+        <div> {{ form_end(shopForm) }} </div>
+    </div>
+<br>
+<br>
+    <p id = prod>Vos produits à acheter sont bien ajoutés à la base de données dès que vous cliquez sur "Envoyer" !</p>
+<br>
+<br>
+{% endblock body %}
+
+
+
+
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<br>
+<br>
+    <p id = prod>Cet item a bien été retiré de la liste !</p>
+<br>
+<br>
+{% endblock body %}
+
+
+
+
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div id="green">
+        {{ parent() }}
+    </div>
+    <div class="list-group">
+        <div class="list-group-item list-group-item-action active">Détails du shop : {{ shop.id }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.shop }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.description }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.price }} Euros</div>
+    </div>
+    <br>
+    <br>
+
+{% endblock body %}
+
+
+
+
+
+
+{% extends "base.html.twig" %}
+
+{% block title %}{{ parent() }}: Shop {% endblock title %}
+
+{% block body %}
+    <br>
+    <div id="red">
+        {{ parent() }}
+    </div>
+    <br>
+    <h1>Liste des items</h1>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Shop</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for shop in shops %}
+            <tr>
+                <th scope="row">{{ shop.id }}</th>
+                <td><a href="{{ url('shop_detail', {'id': shop.id }) }}">{{ shop.shop }}</a></td>
+                <th scope="row"><a href="{{ url('shop_delete',{'id': shop.id } ) }}">Supprimer</a></th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <br>
+{% endblock body %}
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{%  block title %}Shopping list{%  endblock title %}</title>
+    <link rel="stylesheet" href="{{ asset('img/style.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+<header>
+    <h1>Shopping list</h1>
+    {%  include('inc/nav.html.twig') %}
+</header>
+
+<main>
+    {% block body %}
+        {% for group, messages in app.flashes  %}
+            {%  for message in messages %}
+                <div class="alert alert~{{ group }} }}" role="alert">
+                    {{ message }}
+                </div>
+            {%  endfor %}
+        {%  endfor %}
+    {% endblock %}
+</main>
+
+<footer>
+    <div style="background-color: #5eb5e0; text-align: center">©Shopping-List {{ "now"|date("d/m/Y H:i:s") }}</div>
+</footer>
+</body>
+</html>

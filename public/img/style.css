@@ -1,0 +1,59 @@
+* {
+    background-color: darkseagreen;
+    font-family: Impact;
+    font-size: medium;
+}
+
+body {
+    margin-left: 200px;
+}
+
+h1 {
+    color : lightseagreen;
+    font-size: xxx-large;
+}
+
+
+#prod {
+    color: #B0413E;
+    font-family: Ink Free;
+    font-weight: bolder;
+    font-size: x-large;
+    animation: law 3s infinite;
+}
+
+@keyframes law {
+    0%{opacity:1;}
+    50%{opacity:0;}
+    100%{opacity:1;}
+}
+
+label {
+    display: block;
+}
+
+#form {
+    margin-left: 50px;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+    max-width: 50%;
+    width: 150px;
+}
+
+.form-group {
+    margin-left: 500px;
+    box-sizing: border-box;
+    width: 500px;
+    border-style: double;
+    padding: 30px;
+}
+
+#red {
+    color: red;
+}
+
+#green {
+    color: green;
+}
+
+

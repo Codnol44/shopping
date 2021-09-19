@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{%  block title %}Shopping list{%  endblock title %}</title>
+    <link rel="stylesheet" href="{{ asset('img/style.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+<header>
+    <h1>Shopping list</h1>
+    {%  include('inc/nav.html.twig') %}
+</header>
+
+<main>
+    {% block body %}
+        {% for group, messages in app.flashes  %}
+            {%  for message in messages %}
+                <div class="alert alert~{{ group }} }}" role="alert">
+                    {{ message }}
+                </div>
+            {%  endfor %}
+        {%  endfor %}
+    {% endblock %}
+</main>
+
+<footer>
+    <div style="background-color: #5eb5e0; text-align: center">©Shopping-List {{ "now"|date("d/m/Y H:i:s") }}</div>
+</footer>
+</body>
+</html>

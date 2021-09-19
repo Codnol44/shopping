@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div id="green">
+        {{ parent() }}
+    </div>
+    <div class="list-group">
+        <div class="list-group-item list-group-item-action active">Détails du shop : {{ shop.id }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.category.name }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.shop }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.description }}</div>
+        <div class="list-group-item list-group-item-action">{{ shop.price }} Euros</div>
+    </div>
+    <br>
+    <br>
+
+{% endblock body %}

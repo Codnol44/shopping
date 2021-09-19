@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<br>
+<br>
+    <div class="form-group">
+        {{ form_start(shopForm) }}
+        {{ form_widget(shopForm) }}
+        <button type="submit" class="btn btn-success">Envoyer</button>
+        {{ form_end(shopForm) }}
+<br>
+<br>
+    <p id = prod>Vos produits a acheter sont bien ajoutés à la base de données dès que vous cliquez sur "Envoyer" !</p>
+<br>
+<br>
+{% endblock body %}
