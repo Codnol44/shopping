@@ -1,4 +1,4 @@
-Shopping a PHP Symfony program..
+Shopping : a PHP / Symfony program.
 
 Contenu :
 
